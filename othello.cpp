@@ -307,41 +307,8 @@ float valueBoard(OthelloBoard now){
     return score;
 }
 
-Point minimax(OthelloBoard now,int deep);
 float maxim(OthelloBoard now, int deep, float a, float b);
 float minim(OthelloBoard now, int deep, float a, float b);
-
-Point minimax(OthelloBoard now,int deep){
-    //std::cout<<"PLAYERs:"<<player<<"\n";
-    Point best(-1,-1);
-    OthelloBoard next;
-    int value = INT_MIN, tmp;
-    //for(auto it:root.next_valid_spots){
-        //std::cout<<it.x<<","<<it.y<<"\n";
-    //}
-
-    int i=0;
-    for(auto it:root.next_valid_spots){
-        //std::cout<<":.:.:.:.:.:.:.:.:.:: "<<it.x<<","<<it.y<<"::.:.:.:.:.:.:.:.:.:.:.:.:.:.:.:\n";//debug
-        next=now;
-        next.put_disc(it);
-        if(next.cur_player!=player){
-            //std::cout<<"works1\n";//debug
-            tmp = minim(next,deep-1,INT_MIN,INT_MAX);
-        }else{
-            //std::cout<<"works2\n";//debug
-            tmp = maxim(next,deep-2,INT_MIN,INT_MAX);
-        }
-        //std::cout<<"["<<tmp<<"]";//debug
-        if(value<tmp){
-            //pointGlobal=it;//cek2913
-            best=it;
-            value=tmp;
-            //std::cout<<"DAPETTTT"<<best.x<<best.y<<"\n";//debug
-        }//else std::cout<<"NOPE"<<best.x<<best.y<<"\n";
-    }
-    return best;
-}
 
 float maxim(OthelloBoard now, int deep, float a, float b){
     //std::cout<<"max"<<deep<<" ";//debug
@@ -435,10 +402,41 @@ void read_valid_spots(std::ifstream& fin) {
     }
 }
 void write_valid_spot(std::ofstream& fout) {
-    pointGlobal = minimax(root,DEPTH);
+    //pointGlobal = minimax(root,DEPTH);
     //std::cout<<" >>I choose: ("<<pointGlobal.x<<", "<<pointGlobal.y<<")\n";//debug
+
+    //std::cout<<"PLAYERs:"<<player<<"\n";
+    Point best(-1,-1);
+    OthelloBoard next;
+    int value = INT_MIN, tmp;
+    //for(auto it:root.next_valid_spots){
+        //std::cout<<it.x<<","<<it.y<<"\n";
+    //}
+
+    //int i=0;
+    for(auto it:root.next_valid_spots){
+        //std::cout<<":.:.:.:.:.:.:.:.:.:: "<<it.x<<","<<it.y<<"::.:.:.:.:.:.:.:.:.:.:.:.:.:.:.:\n";//debug
+        next=root;
+        next.put_disc(it);
+        if(next.cur_player!=player){
+            //std::cout<<"works1\n";//debug
+            tmp = minim(next,DEPTH-1,INT_MIN,INT_MAX);
+        }else{
+            //std::cout<<"works2\n";//debug
+            tmp = maxim(next,DEPTH-2,INT_MIN,INT_MAX);
+        }
+        //std::cout<<"["<<tmp<<"]";//debug
+        if(value<tmp){
+            //pointGlobal=it;//cek2913
+            best=it;
+            value=tmp;
+            fout << best.x << " " << best.y << std::endl;
+            fout.flush();
+            //std::cout<<"DAPETTTT"<<best.x<<best.y<<"\n";//debug
+        }//else std::cout<<"NOPE"<<best.x<<best.y<<"\n";
+    }
     // Remember to flush the output to ensure the last action is written to file.
-    fout << pointGlobal.x << " " << pointGlobal.y << std::endl;
+    fout << best.x << " " << best.y << std::endl;
     fout.flush();
 }
 
