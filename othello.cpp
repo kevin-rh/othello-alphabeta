@@ -304,48 +304,48 @@ float maxim(OthelloBoard now, int deep, float a, float b);
 float minim(OthelloBoard now, int deep, float a, float b);
 
 Point minimax(OthelloBoard now,int deep){
-    std::cout<<"PLAYERs:"<<player<<"\n";
+    //std::cout<<"PLAYERs:"<<player<<"\n";
     Point best(-1,-1);
     OthelloBoard next;
     int value = INT_MIN, tmp;
-    for(auto it:root.next_valid_spots){
-        std::cout<<it.x<<","<<it.y<<"\n";
-    }
+    //for(auto it:root.next_valid_spots){
+        //std::cout<<it.x<<","<<it.y<<"\n";
+    //}
 
     int i=0;
     for(auto it:root.next_valid_spots){
-        std::cout<<":.:.:.:.:.:.:.:.:.:: "<<it.x<<","<<it.y<<"::.:.:.:.:.:.:.:.:.:.:.:.:.:.:.:\n";
+        //std::cout<<":.:.:.:.:.:.:.:.:.:: "<<it.x<<","<<it.y<<"::.:.:.:.:.:.:.:.:.:.:.:.:.:.:.:\n";//debug
         next=now;
         next.put_disc(it);
         if(next.cur_player!=player){
-            std::cout<<"works1\n";
+            //std::cout<<"works1\n";//debug
             tmp = minim(next,deep-1,INT_MIN,INT_MAX);
         }else{
-            std::cout<<"works2\n";
+            //std::cout<<"works2\n";//debug
             tmp = maxim(next,deep-2,INT_MIN,INT_MAX);
         }
-        std::cout<<"["<<tmp<<"]";
+        std::cout<<"["<<tmp<<"]";//debug
         if(value<tmp){
             best=it;
             value=tmp;
-            std::cout<<"DAPETTTT"<<best.x<<best.y<<"\n";
-        }else std::cout<<"NOPE"<<best.x<<best.y<<"\n";
+            //std::cout<<"DAPETTTT"<<best.x<<best.y<<"\n";//debug
+        }//else std::cout<<"NOPE"<<best.x<<best.y<<"\n";
     }
     return best;
 }
 
 float maxim(OthelloBoard now, int deep, float a, float b){
-    std::cout<<"max"<<deep<<" ";
+    //std::cout<<"max"<<deep<<" ";//debug
 
     float value=INT_MIN;
     if(deep<=0||now.done){
-        std::cout<<">>"<<deep<<"(P"<<now.cur_player<<"-s:";//debug
+        //std::cout<<">>"<<deep<<"(P"<<now.cur_player<<"-s:";//debug
         value=valueBoard(now);
-        std::cout<<"):";//debug
+        //std::cout<<"):";//debug
         return value;
     }else{
         OthelloBoard next;
-        if(now.next_valid_spots.empty())std::cout<<"empty ";//debug
+        //if(now.next_valid_spots.empty())std::cout<<"empty ";//debug
         for(auto it:now.next_valid_spots){
             next=now;
             next.put_disc(it);
@@ -354,14 +354,16 @@ float maxim(OthelloBoard now, int deep, float a, float b){
             else
                 value=std::max(minim(next,deep-1,a,b),value);
         }
+        if(value>a)a=value;
+        if(value>=b)break;
         //std::cout<<">>"<<deep<<"(P"<<now.cur_player<<"-s:"<<value<<"):";
         return value;
     }
-    std::cout<<"ESCAPED\n";//debug
+    //std::cout<<"ESCAPED\n";//debug
 }
 
 float minim(OthelloBoard now, int deep, float a, float b){
-    std::cout<<"min"<<deep<<" ";//debug
+    //std::cout<<"min"<<deep<<" ";//debug
 
     float value=INT_MAX;
 
@@ -371,7 +373,7 @@ float minim(OthelloBoard now, int deep, float a, float b){
         //std::cout<<"):";//debug
         return value;
     }else{
-        if(now.next_valid_spots.empty())std::cout<<"empty ";//debug
+        //if(now.next_valid_spots.empty())std::cout<<"empty ";//debug
         OthelloBoard next;
         for(auto it:now.next_valid_spots){
             next=now;
@@ -380,18 +382,20 @@ float minim(OthelloBoard now, int deep, float a, float b){
                 value=std::min(maxim(next,deep-1,a,b),value);
             else
                 value=std::min(minim(next,deep-2,a,b),value);
+            if(value<b)b=value;
+            if(value<=a)break;
         }
         //std::cout<<">>"<<deep<<"(P"<<now.cur_player<<"-s:"<<value<<"):";
         return value;
     }
-    std::cout<<"ESCAPED\n";
+    //std::cout<<"ESCAPED\n";
 }
 
 //////////////////////////////////////////////////////////////////////////////////
 
 void read_board(std::ifstream& fin) {
     fin >> player;
-    std::cout<<"PLAYER: "<<player<<"\n";//debug
+    //std::cout<<"PLAYER: "<<player<<"\n";//debug
     root.cur_player=player;
     for (int i = 0; i < SIZE; i++) {
         for (int j = 0; j < SIZE; j++) {
@@ -403,7 +407,7 @@ void read_valid_spots(std::ifstream& fin) {
     int n_valid_spots;
     fin >> n_valid_spots;
     int x, y;
-    std::cout<<"INIT: ";
+    //std::cout<<"INIT: ";
     root.next_valid_spots.clear();
     for (int i = 0; i < n_valid_spots; i++) {
         fin >> x >> y;
@@ -417,7 +421,7 @@ void write_valid_spot(std::ofstream& fout) {
     //srand(time(NULL));
     // Choose random spot. (Not random uniform here)
     //int index = (rand() % n_valid_spots);
-    Point p = minimax(root,2);
+    Point p = minimax(root,4);
     std::cout<<" >>I choose: ("<<p.x<<", "<<p.y<<")\n";//debug
     // Remember to flush the output to ensure the last action is written to file.
     fout << p.x << " " << p.y << std::endl;
