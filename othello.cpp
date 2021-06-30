@@ -12,6 +12,8 @@
 #include <ctime>
 #include <algorithm>
 
+#include <queue>
+#include <cmath>
 struct Point {
     int x, y;
 	Point() : Point(0, 0) {}
@@ -30,9 +32,15 @@ struct Point {
 	}
 };
 
-
+Point pointGlobal(-2,-2);
 int player;
+
+const float SCORE_CONST = 3;
+const float VALUE_CONST = 1;
+const int DEPTH = 6;
 const int SIZE = 8;
+
+
 //std::array<std::array<int, SIZE>, SIZE> board;
 //std::vector<Point> next_valid_spots;
 
@@ -268,7 +276,7 @@ public:
             }else cek[7]=false;
             i++;
     	}
-    	return score;
+    	return score*SCORE_CONST;
     }
     //int heuristicPoint(int p){
     //	return 0;//cek2814 kasi angka
@@ -284,18 +292,18 @@ public:
                 }
             }
     	}
-    	return score;
+    	return score*VALUE_CONST;
     }
 };
-/////////////////////////////////////////////////////////////////////////////new///
 OthelloBoard root;
-
+/////////////////////////////////////////////////////////////////////////////new///
 
 float valueBoard(OthelloBoard now){
     float score;
     score=now.heuristicValue(player)+3*((player==now.cur_player)?now.scorePlacement:-now.scorePlacement);
     score+=(now.heuristicAbs(player)<<2);
     score-=(now.heuristicAbs(3-player)<<2);
+    //std::cout<<score<<' ';//debug
     return score;
 }
 
@@ -324,8 +332,9 @@ Point minimax(OthelloBoard now,int deep){
             //std::cout<<"works2\n";//debug
             tmp = maxim(next,deep-2,INT_MIN,INT_MAX);
         }
-        std::cout<<"["<<tmp<<"]";//debug
+        //std::cout<<"["<<tmp<<"]";//debug
         if(value<tmp){
+            //pointGlobal=it;//cek2913
             best=it;
             value=tmp;
             //std::cout<<"DAPETTTT"<<best.x<<best.y<<"\n";//debug
@@ -338,7 +347,15 @@ float maxim(OthelloBoard now, int deep, float a, float b){
     //std::cout<<"max"<<deep<<" ";//debug
 
     float value=INT_MIN;
-    if(deep<=0||now.done){
+    if(now.done){
+        value=now.disc_count[player]/(now.disc_count[player]+now.disc_count[3-player]);
+        value-=now.disc_count[3-player]/(now.disc_count[player]+now.disc_count[3-player]);
+        if(value<0){
+            return INT_MIN+5000;
+        }
+        return value*10000;
+    }
+    if(deep<=0){
         //std::cout<<">>"<<deep<<"(P"<<now.cur_player<<"-s:";//debug
         value=valueBoard(now);
         //std::cout<<"):";//debug
@@ -353,9 +370,10 @@ float maxim(OthelloBoard now, int deep, float a, float b){
                 value=std::max(maxim(next,deep-2,a,b),value);
             else
                 value=std::max(minim(next,deep-1,a,b),value);
+            if(value>a)a=value;
+            if(value>=b)break;
         }
-        if(value>a)a=value;
-        if(value>=b)break;
+
         //std::cout<<">>"<<deep<<"(P"<<now.cur_player<<"-s:"<<value<<"):";
         return value;
     }
@@ -366,7 +384,10 @@ float minim(OthelloBoard now, int deep, float a, float b){
     //std::cout<<"min"<<deep<<" ";//debug
 
     float value=INT_MAX;
-
+    if(now.done){
+        value=15*(now.disc_count[player]-now.disc_count[3-player]);
+        return value;
+    }
     if(deep<=0||now.done){
         //std::cout<<">>"<<deep<<"(P"<<now.cur_player<<")"<<"-s:";//debug
         value=valueBoard(now);
@@ -390,9 +411,7 @@ float minim(OthelloBoard now, int deep, float a, float b){
     }
     //std::cout<<"ESCAPED\n";
 }
-
 //////////////////////////////////////////////////////////////////////////////////
-
 void read_board(std::ifstream& fin) {
     fin >> player;
     //std::cout<<"PLAYER: "<<player<<"\n";//debug
@@ -415,19 +434,13 @@ void read_valid_spots(std::ifstream& fin) {
         //std::cout<<x<<y<<"\n";//debug
     }
 }
-
 void write_valid_spot(std::ofstream& fout) {
-    //int n_valid_spots = root.next_valid_spots.size();
-    //srand(time(NULL));
-    // Choose random spot. (Not random uniform here)
-    //int index = (rand() % n_valid_spots);
-    Point p = minimax(root,4);
-    std::cout<<" >>I choose: ("<<p.x<<", "<<p.y<<")\n";//debug
+    pointGlobal = minimax(root,DEPTH);
+    //std::cout<<" >>I choose: ("<<pointGlobal.x<<", "<<pointGlobal.y<<")\n";//debug
     // Remember to flush the output to ensure the last action is written to file.
-    fout << p.x << " " << p.y << std::endl;
+    fout << pointGlobal.x << " " << pointGlobal.y << std::endl;
     fout.flush();
 }
-
 
 int main(int, char** argv) {
     std::ifstream fin(argv[1]);
