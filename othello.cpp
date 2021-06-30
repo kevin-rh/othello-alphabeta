@@ -6,7 +6,6 @@
 #include <vector>
 #include <cassert>
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include <climits>
 #include <cstdlib>
 #include <ctime>
@@ -14,25 +13,26 @@
 
 #include <queue>
 #include <cmath>
+
 struct Point {
     int x, y;
-	Point() : Point(0, 0) {}
-	Point(float x, float y) : x(x), y(y) {}
-	bool operator==(const Point& rhs) const {
-		return x == rhs.x && y == rhs.y;
-	}
-	bool operator!=(const Point& rhs) const {
-		return !operator==(rhs);
-	}
-	Point operator+(const Point& rhs) const {
-		return Point(x + rhs.x, y + rhs.y);
-	}
-	Point operator-(const Point& rhs) const {
-		return Point(x - rhs.x, y - rhs.y);
-	}
+    Point() : Point(0, 0) {}
+    Point(float x, float y) : x(x), y(y) {}
+    bool operator==(const Point& rhs) const {
+        return x == rhs.x && y == rhs.y;
+    }
+    bool operator!=(const Point& rhs) const {
+        return !operator==(rhs);
+    }
+    Point operator+(const Point& rhs) const {
+        return Point(x + rhs.x, y + rhs.y);
+    }
+    Point operator-(const Point& rhs) const {
+        return Point(x - rhs.x, y - rhs.y);
+    }
 };
 
-Point pointGlobal(-2,-2);
+Point pointGlobal(-2, -2);
 int player;
 
 const float SCORE_CONST = 3;
@@ -40,22 +40,18 @@ const float VALUE_CONST = 1;
 const int DEPTH = 6;
 const int SIZE = 8;
 
-
-//std::array<std::array<int, SIZE>, SIZE> board;
-//std::vector<Point> next_valid_spots;
-
-int pointW[8][8]={
-    {100,-25,10, 5, 5,10,-25,100},
+int pointW[8][8] = {
+    {100,-25,10, 5, 5,10,-25,110},
     {-25,-25, 1, 1, 1, 1,-25,-25},
-    { 10,  1, 5, 2, 2, 5,  1, 10},
-    {  5,  1, 2, 1, 1, 2,  1,  5},
-    {  5,  1, 2, 1, 1, 2,  1,  5},
-    { 10,  1, 5, 2, 2, 5,  1, 10},
-    {-25,-25, 1, 1, 1, 1,-25,-25},
-    {100,-25,10, 5, 5,10,-25,100}
+    { 10,  1, 5, 2, 2, 5,  2, 15},
+    {  5,  1, 2, 1, 1, 2,  2,  10},
+    {  5,  1, 2, 1, 1, 3,  2,  10},
+    { 10,  1, 5, 2, 3, 7,  2, 15},
+    {-25,-25, 2, 2, 2, 2,-25,-25},
+    {110,-25,15, 10, 10,15,-25,130}
 };
 
-int scoreW[8][8]={
+int scoreW[8][8] = {
     { 8, 2, 2, 2, 2, 2, 1, 8},
     { 2, 1, 1, 1, 1, 1, 1, 2},
     { 2, 1, 2, 2, 2, 2, 1, 2},
@@ -66,7 +62,6 @@ int scoreW[8][8]={
     { 8, 2, 2, 2, 2, 2, 2, 8}
 };
 
-////////////////////////////////////////////////////////////////////////////////////
 class OthelloBoard {
 public:
     enum SPOT_STATE {
@@ -75,11 +70,11 @@ public:
         WHITE = 2
     };
     static const int SIZE = 8;
-    const std::array<Point, 8> directions{{
+    const std::array<Point, 8> directions{ {
         Point(-1, -1), Point(-1, 0), Point(-1, 1),
         Point(0, -1), /*{0, 0}, */Point(0, 1),
         Point(1, -1), Point(1, 0), Point(1, 1)
-    }};
+    } };
     std::array<std::array<int, SIZE>, SIZE> board;
     std::vector<Point> next_valid_spots;
     std::array<int, 3> disc_count;
@@ -111,7 +106,7 @@ private:
     bool is_spot_valid(Point center) const {
         if (get_disc(center) != EMPTY)
             return false;
-        for (Point dir: directions) {
+        for (Point dir : directions) {
             // Move along the direction while testing.
             Point p = center + dir;
             if (!is_disc_at(p, get_next_player(cur_player)))
@@ -126,17 +121,17 @@ private:
         return false;
     }
     void flip_discs(Point center) {
-        this->scorePlacement=scoreW[center.x][center.y];// cek2820
-        for (Point dir: directions) {
+        this->scorePlacement = scoreW[center.x][center.y];// cek2820
+        for (Point dir : directions) {
             // Move along the direction while testing.
             Point p = center + dir;
             if (!is_disc_at(p, get_next_player(cur_player)))
                 continue;
-            std::vector<Point> discs({p});
+            std::vector<Point> discs({ p });
             p = p + dir;
             while (is_spot_on_board(p) && get_disc(p) != EMPTY) {
                 if (is_disc_at(p, cur_player)) {
-                    for (Point s: discs) {
+                    for (Point s : discs) {
                         set_disc(s, cur_player);
                     }
                     disc_count[cur_player] += discs.size();
@@ -152,20 +147,8 @@ public:
     OthelloBoard() {
         reset();
     }
-    /*
-    OthelloBoard(const std::array<std::array<int, SIZE>, SIZE> board,int play){
-    	for (int i = 0; i < SIZE; i++) {
-            for (int j = 0; j < SIZE; j++) {
-                this->board[i][j] = board[i][j];
-                disc_count[board[i][j]]++;
-            }
-        }
-        cur_player=play;
-        next_valid_spots=this->get_valid_spots();
-    }
-    */
-    OthelloBoard& operator= (const OthelloBoard& rhs){
-    	for (int i = 0; i < SIZE; i++) {
+    OthelloBoard& operator= (const OthelloBoard& rhs) {
+        for (int i = 0; i < SIZE; i++) {
             for (int j = 0; j < SIZE; j++) {
                 this->board[i][j] = rhs.board[i][j];
             }
@@ -174,15 +157,15 @@ public:
         disc_count[EMPTY] = rhs.disc_count[EMPTY];
         disc_count[BLACK] = rhs.disc_count[BLACK];
         disc_count[WHITE] = rhs.disc_count[WHITE];
-        for(auto it:rhs.next_valid_spots) next_valid_spots.emplace_back(it);
+        for (auto it : rhs.next_valid_spots) next_valid_spots.emplace_back(it);
         done = rhs.done;
         winner = rhs.winner;
         return *this;
     }
-    bool operator==(const OthelloBoard& rhs){
-    	for (int i = 0; i < SIZE; i++) {
+    bool operator==(const OthelloBoard& rhs) {
+        for (int i = 0; i < SIZE; i++) {
             for (int j = 0; j < SIZE; j++) {
-                if(this->board[i][j] != rhs.board[i][j])return false;
+                if (this->board[i][j] != rhs.board[i][j])return false;
             }
         }
         return true;
@@ -213,7 +196,7 @@ public:
         return valid_spots;
     }
     bool put_disc(Point p) {
-        if(!is_spot_valid(p)) {
+        if (!is_spot_valid(p)) {
             winner = get_next_player(cur_player);
             done = true;
             return false;
@@ -241,104 +224,124 @@ public:
         }
         return true;
     }
-    int heuristicAbs(int p){
-        int i=0,sz=SIZE-1,score=0;
-        bool cek[8]={true,true,true,true,true,true,true,true};
-    	//std::fill(cek,cek+sizeof(cek),true);
-        while(cek[0]||cek[1]||cek[2]||cek[3]||cek[4]||cek[5]||cek[6]||cek[7]){
-            if(i==SIZE)break;
+    int heuristicAbs(int p) {
+        int i = 0, sz = SIZE - 1, score = 0;
+        bool cek[8] = { true,true,true,true,true,true,true,true };
+        //std::fill(cek,cek+sizeof(cek),true);
+        while(i!=SIZE){
             if(cek[0]&&board[0][i]==p){
-                score++;
-            }else cek[0]=false;
+                score+=2;
+            }else{
+                cek[0]=false;
+                if(board[0][i]==p)score++;
+            }
             if(cek[1]&&board[i][0]==p){
-                score++;
-            }else cek[1]=false;
-
+                score+=2;
+            }else{
+                cek[1]=false;
+                if(board[i][0]==p)score++;
+            }
             if(cek[2]&&board[0][sz-i]==p){
-                score++;
-            }else cek[2]=false;
+                score+=2;
+            }else{
+                cek[2]=false;
+                if(board[0][sz-i]==p)score++;
+            }
             if(cek[3]&&board[i][sz]==p){
-                score++;
-            }else cek[3]=false;
-
+                score+=2;
+            }else{
+                cek[3]=false;
+                if(board[i][sz]==p)score++;
+            }
             if(cek[4]&&board[sz][sz-i]==p){
-                score++;
-            }else cek[4]=false;
+                score+=2;
+            }else{
+                cek[4]=false;
+                if(board[sz][sz-i]==p)score++;
+            }
             if(cek[5]&&board[sz-i][sz]==p){
-                score++;
-            }else cek[5]=false;
-
+                score+=2;
+            }else{
+                cek[5]=false;
+                if(board[sz-i][sz]==p)score++;
+            }
             if(cek[6]&&board[sz][i]==p){
-                score++;
-            }else cek[6]=false;
+                score+=2;
+            }else{
+                cek[6]=false;
+                if(board[sz][i]==p)score++;
+            }
             if(cek[sz]&&board[sz-i][0]==p){
-                score++;
-            }else cek[7]=false;
+                score+=2;
+            }else{
+                cek[7]=false;
+                if(board[sz-i][0]==p)score++;
+            }
             i++;
     	}
     	return score*SCORE_CONST;
     }
-    //int heuristicPoint(int p){
-    //	return 0;//cek2814 kasi angka
-    //}
-    int heuristicValue(int p){
-    	int score=0;
-    	for(int i=0;i<SIZE;i++){
-            for(int j=0;j<SIZE;j++){
-                if(p==board[i][j]){
-                    score+=pointW[i][j];
-                }else if((3-p)==board[i][j]){
-                    score-=pointW[i][j];
+
+    int heuristicValue(int p) {
+        int score = 0;
+        for (int i = 0; i < SIZE; i++) {
+            for (int j = 0; j < SIZE; j++) {
+                if (p == board[i][j]) {
+                    score += pointW[i][j];
+                }
+                else if ((3 - p) == board[i][j]) {
+                    score -= pointW[i][j];
                 }
             }
-    	}
-    	return score*VALUE_CONST;
+        }
+        return score * VALUE_CONST;
     }
 };
-OthelloBoard root;
-/////////////////////////////////////////////////////////////////////////////new///
 
-float valueBoard(OthelloBoard now){
+OthelloBoard root;
+
+float valueBoard(OthelloBoard now) {
     float score;
-    score=now.heuristicValue(player)+3*((player==now.cur_player)?now.scorePlacement:-now.scorePlacement);
-    score+=(now.heuristicAbs(player)<<2);
-    score-=(now.heuristicAbs(3-player)<<2);
+    score = now.heuristicValue(player) + 3 * ((player == now.cur_player) ? now.scorePlacement : -now.scorePlacement);
+    score += (now.heuristicAbs(player) << 2);
+    score -= (now.heuristicAbs(3 - player) << 2);
     //std::cout<<score<<' ';//debug
     return score;
 }
 
+//minimax alpha beta pruning algorithm
 float maxim(OthelloBoard now, int deep, float a, float b);
 float minim(OthelloBoard now, int deep, float a, float b);
 
-float maxim(OthelloBoard now, int deep, float a, float b){
-    //std::cout<<"max"<<deep<<" ";//debug
-
-    float value=INT_MIN;
-    if(now.done){
-        value=now.disc_count[player]/(now.disc_count[player]+now.disc_count[3-player]);
-        value-=now.disc_count[3-player]/(now.disc_count[player]+now.disc_count[3-player]);
-        if(value<0){
-            return INT_MIN+5000;
+float maxim(OthelloBoard now, int deep, float a, float b) {
+    //std::cout<<"maxdeep<<" ";//debug
+    float value = INT_MIN;
+    if (now.done) {
+        value = now.disc_count[player] / (now.disc_count[player] + now.disc_count[3 - player]);
+        value -= now.disc_count[3 - player] / (now.disc_count[player] + now.disc_count[3 - player]);
+        if (value < 0) {
+            return INT_MIN + 5000;
         }
-        return value*10000;
+        return value * 10000;
     }
-    if(deep<=0){
+    if (deep <= 0) {
         //std::cout<<">>"<<deep<<"(P"<<now.cur_player<<"-s:";//debug
-        value=valueBoard(now);
+        value = valueBoard(now);
         //std::cout<<"):";//debug
         return value;
-    }else{
+    }
+    else {
         OthelloBoard next;
         //if(now.next_valid_spots.empty())std::cout<<"empty ";//debug
-        for(auto it:now.next_valid_spots){
-            next=now;
+        for (auto it : now.next_valid_spots) {
+            next = now;
             next.put_disc(it);
-            if(now.cur_player==next.cur_player)
-                value=std::max(maxim(next,deep-2,a,b),value);
+            if (now.cur_player == next.cur_player)
+                value = std::max(maxim(next, deep - 2, a, b), value);
             else
-                value=std::max(minim(next,deep-1,a,b),value);
-            if(value>a)a=value;
-            if(value>=b)break;
+                value = std::max(minim(next, deep - 1, a, b), value);
+            if (value > a)a = value;
+            if (value >= b)break;
         }
 
         //std::cout<<">>"<<deep<<"(P"<<now.cur_player<<"-s:"<<value<<"):";
@@ -346,43 +349,43 @@ float maxim(OthelloBoard now, int deep, float a, float b){
     }
     //std::cout<<"ESCAPED\n";//debug
 }
-
-float minim(OthelloBoard now, int deep, float a, float b){
+float minim(OthelloBoard now, int deep, float a, float b) {
     //std::cout<<"min"<<deep<<" ";//debug
-
-    float value=INT_MAX;
-    if(now.done){
-        value=15*(now.disc_count[player]-now.disc_count[3-player]);
+    float value = INT_MAX;
+    if (now.done) {
+        value = 15 * (now.disc_count[player] - now.disc_count[3 - player]);
         return value;
     }
-    if(deep<=0||now.done){
+    if (deep <= 0 || now.done) {
         //std::cout<<">>"<<deep<<"(P"<<now.cur_player<<")"<<"-s:";//debug
-        value=valueBoard(now);
+        value = valueBoard(now);
         //std::cout<<"):";//debug
         return value;
-    }else{
+    }
+    else {
         //if(now.next_valid_spots.empty())std::cout<<"empty ";//debug
         OthelloBoard next;
-        for(auto it:now.next_valid_spots){
-            next=now;
+        for (auto it : now.next_valid_spots) {
+            next = now;
             next.put_disc(it);
-            if(now.cur_player!=next.cur_player)
-                value=std::min(maxim(next,deep-1,a,b),value);
+            if (now.cur_player != next.cur_player)
+                value = std::min(maxim(next, deep - 1, a, b), value);
             else
-                value=std::min(minim(next,deep-2,a,b),value);
-            if(value<b)b=value;
-            if(value<=a)break;
+                value = std::min(minim(next, deep - 2, a, b), value);
+            if (value < b)b = value;
+            if (value <= a)break;
         }
         //std::cout<<">>"<<deep<<"(P"<<now.cur_player<<"-s:"<<value<<"):";
         return value;
     }
     //std::cout<<"ESCAPED\n";
 }
-//////////////////////////////////////////////////////////////////////////////////
+
+//read & write
 void read_board(std::ifstream& fin) {
     fin >> player;
     //std::cout<<"PLAYER: "<<player<<"\n";//debug
-    root.cur_player=player;
+    root.cur_player = player;
     for (int i = 0; i < SIZE; i++) {
         for (int j = 0; j < SIZE; j++) {
             fin >> root.board[i][j];
@@ -397,43 +400,31 @@ void read_valid_spots(std::ifstream& fin) {
     root.next_valid_spots.clear();
     for (int i = 0; i < n_valid_spots; i++) {
         fin >> x >> y;
-        root.next_valid_spots.push_back({(float) x,(float) y});
+        root.next_valid_spots.push_back({ (float)x,(float)y });
         //std::cout<<x<<y<<"\n";//debug
     }
 }
 void write_valid_spot(std::ofstream& fout) {
-    //pointGlobal = minimax(root,DEPTH);
-    //std::cout<<" >>I choose: ("<<pointGlobal.x<<", "<<pointGlobal.y<<")\n";//debug
-
-    //std::cout<<"PLAYERs:"<<player<<"\n";
-    Point best(-1,-1);
+    Point best(-1, -1);
     OthelloBoard next;
     int value = INT_MIN, tmp;
-    //for(auto it:root.next_valid_spots){
-        //std::cout<<it.x<<","<<it.y<<"\n";
-    //}
 
-    //int i=0;
-    for(auto it:root.next_valid_spots){
+    for (auto it : root.next_valid_spots) {
         //std::cout<<":.:.:.:.:.:.:.:.:.:: "<<it.x<<","<<it.y<<"::.:.:.:.:.:.:.:.:.:.:.:.:.:.:.:\n";//debug
-        next=root;
+        next = root;
         next.put_disc(it);
-        if(next.cur_player!=player){
-            //std::cout<<"works1\n";//debug
-            tmp = minim(next,DEPTH-1,INT_MIN,INT_MAX);
-        }else{
-            //std::cout<<"works2\n";//debug
-            tmp = maxim(next,DEPTH-2,INT_MIN,INT_MAX);
+        if (next.cur_player != player) {
+            tmp = minim(next, DEPTH - 1, INT_MIN, INT_MAX);
+        }else {
+            tmp = maxim(next, DEPTH - 2, INT_MIN, INT_MAX);
         }
-        //std::cout<<"["<<tmp<<"]";//debug
-        if(value<tmp){
-            //pointGlobal=it;//cek2913
-            best=it;
-            value=tmp;
+        if (value < tmp) {
+            best = it;
+            value = tmp;
             fout << best.x << " " << best.y << std::endl;
             fout.flush();
-            //std::cout<<"DAPETTTT"<<best.x<<best.y<<"\n";//debug
-        }//else std::cout<<"NOPE"<<best.x<<best.y<<"\n";
+            //std::cout<<best.x<<best.y<<"\n";//debug
+        }
     }
     // Remember to flush the output to ensure the last action is written to file.
     fout << best.x << " " << best.y << std::endl;
