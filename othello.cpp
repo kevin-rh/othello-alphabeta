@@ -11,9 +11,6 @@
 #include <ctime>
 #include <algorithm>
 
-#include <queue>
-#include <cmath>
-
 struct Point {
     int x, y;
     Point() : Point(0, 0) {}
@@ -40,26 +37,39 @@ const float VALUE_CONST = 1;
 const int DEPTH = 6;
 const int SIZE = 8;
 
-int pointW[8][8] = {
-    {100,-25,10, 5, 5,10,-25,110},
+// State Value Table
+int pointW [2][8][8] = {
+    {
+    {150,-25,10, 5, 5,10,-25,110},
     {-25,-25, 1, 1, 1, 1,-25,-25},
-    { 10,  1, 5, 2, 2, 5,  2, 15},
-    {  5,  1, 2, 1, 1, 2,  2,  10},
-    {  5,  1, 2, 1, 1, 3,  2,  10},
-    { 10,  1, 5, 2, 3, 7,  2, 15},
-    {-25,-25, 2, 2, 2, 2,-25,-25},
-    {110,-25,15, 10, 10,15,-25,130}
+    { 15,  2, 7, 3, 2, 5,  2, 15},
+    { 10,  1, 3, 15, 15, 2, 1, 10},
+    { 10,  1, 2, 15, 15, 3, 1, 10},
+    { 15,  2, 5, 2, 3, 7,  2, 15},
+    {-25,-25, 1, 1, 1, 1,-25,-25},
+    {110,-25,10, 5, 5,10,-25,150}
+    },
+    {
+    {150,-25,10, 5, 5,10,-25,110},
+    {-25,-25, 1, 1, 1, 1,-25,-25},
+    { 15,  2, 7, 2, 2, 5,  2, 15},
+    { 10,  1, 2, 15, 15, 2,  1, 10},
+    { 10,  1, 2, 15, 15, 2,  1, 10},
+    { 15,  2, 5, 2, 2, 7,  2, 15},
+    {-25,-25, 1, 1, 1, 1,-25,-25},
+    {110,-25,10, 5, 5,10,-25,150}
+    }
 };
 
 int scoreW[8][8] = {
-    { 8, 2, 2, 2, 2, 2, 1, 8},
-    { 2, 1, 1, 1, 1, 1, 1, 2},
-    { 2, 1, 2, 2, 2, 2, 1, 2},
-    { 2, 1, 2, 1, 1, 2, 1, 2},
-    { 2, 1, 2, 1, 1, 2, 1, 2},
-    { 2, 1, 2, 2, 2, 2, 1, 2},
-    { 2, 1, 1, 1, 1, 1, 1, 2},
-    { 8, 2, 2, 2, 2, 2, 2, 8}
+    { 10, 2, 2, 2, 2, 2, 1, 8},
+    { 2, 1, 1, 1, 1, 1, 1, 3},
+    { 2, 1, 2, 2, 2, 2, 1, 3},
+    { 2, 1, 2, 7, 7, 2, 1, 3},
+    { 2, 1, 2, 7, 7, 2, 1, 3},
+    { 2, 1, 2, 2, 2, 2, 1, 3},
+    { 2, 1, 1, 1, 1, 1, 1, 3},
+    { 100, 4, 4, 4, 4, 4, 4, 100}
 };
 
 class OthelloBoard {
@@ -121,7 +131,7 @@ private:
         return false;
     }
     void flip_discs(Point center) {
-        this->scorePlacement = scoreW[center.x][center.y];// cek2820
+        this->scorePlacement = scoreW[center.x][center.y];
         for (Point dir : directions) {
             // Move along the direction while testing.
             Point p = center + dir;
@@ -281,23 +291,21 @@ public:
     	}
     	return score*SCORE_CONST;
     }
-
     int heuristicValue(int p) {
         int score = 0;
         for (int i = 0; i < SIZE; i++) {
             for (int j = 0; j < SIZE; j++) {
                 if (p == board[i][j]) {
-                    score += pointW[i][j];
+                    score += pointW[player][i][j];
                 }
                 else if ((3 - p) == board[i][j]) {
-                    score -= pointW[i][j];
+                    score -= pointW[player][i][j];
                 }
             }
         }
         return score * VALUE_CONST;
     }
 };
-
 OthelloBoard root;
 
 float valueBoard(OthelloBoard now) {
@@ -305,34 +313,25 @@ float valueBoard(OthelloBoard now) {
     score = now.heuristicValue(player) + 3 * ((player == now.cur_player) ? now.scorePlacement : -now.scorePlacement);
     score += (now.heuristicAbs(player) << 2);
     score -= (now.heuristicAbs(3 - player) << 2);
-    //std::cout<<score<<' ';//debug
     return score;
 }
 
-//minimax alpha beta pruning algorithm
+// Minimax Alpha-Beta Pruning
 float maxim(OthelloBoard now, int deep, float a, float b);
 float minim(OthelloBoard now, int deep, float a, float b);
 
 float maxim(OthelloBoard now, int deep, float a, float b) {
-    //std::cout<<"maxdeep<<" ";//debug
     float value = INT_MIN;
     if (now.done) {
-        value = now.disc_count[player] / (now.disc_count[player] + now.disc_count[3 - player]);
-        value -= now.disc_count[3 - player] / (now.disc_count[player] + now.disc_count[3 - player]);
-        if (value < 0) {
-            return INT_MIN + 5000;
-        }
-        return value * 10000;
+        value = 1000 * (now.disc_count[player] - now.disc_count[3 - player]);
+        return value;
     }
     if (deep <= 0) {
-        //std::cout<<">>"<<deep<<"(P"<<now.cur_player<<"-s:";//debug
         value = valueBoard(now);
-        //std::cout<<"):";//debug
         return value;
     }
     else {
         OthelloBoard next;
-        //if(now.next_valid_spots.empty())std::cout<<"empty ";//debug
         for (auto it : now.next_valid_spots) {
             next = now;
             next.put_disc(it);
@@ -343,27 +342,21 @@ float maxim(OthelloBoard now, int deep, float a, float b) {
             if (value > a)a = value;
             if (value >= b)break;
         }
-
-        //std::cout<<">>"<<deep<<"(P"<<now.cur_player<<"-s:"<<value<<"):";
         return value;
     }
-    //std::cout<<"ESCAPED\n";//debug
 }
+
 float minim(OthelloBoard now, int deep, float a, float b) {
-    //std::cout<<"min"<<deep<<" ";//debug
     float value = INT_MAX;
     if (now.done) {
-        value = 15 * (now.disc_count[player] - now.disc_count[3 - player]);
+        value = 1000 * (now.disc_count[player] - now.disc_count[3 - player]);
         return value;
     }
-    if (deep <= 0 || now.done) {
-        //std::cout<<">>"<<deep<<"(P"<<now.cur_player<<")"<<"-s:";//debug
+    if (deep <= 0) {
         value = valueBoard(now);
-        //std::cout<<"):";//debug
         return value;
     }
     else {
-        //if(now.next_valid_spots.empty())std::cout<<"empty ";//debug
         OthelloBoard next;
         for (auto it : now.next_valid_spots) {
             next = now;
@@ -375,13 +368,11 @@ float minim(OthelloBoard now, int deep, float a, float b) {
             if (value < b)b = value;
             if (value <= a)break;
         }
-        //std::cout<<">>"<<deep<<"(P"<<now.cur_player<<"-s:"<<value<<"):";
         return value;
     }
-    //std::cout<<"ESCAPED\n";
 }
 
-//read & write
+// Read & Write
 void read_board(std::ifstream& fin) {
     fin >> player;
     //std::cout<<"PLAYER: "<<player<<"\n";//debug
@@ -401,21 +392,23 @@ void read_valid_spots(std::ifstream& fin) {
     for (int i = 0; i < n_valid_spots; i++) {
         fin >> x >> y;
         root.next_valid_spots.push_back({ (float)x,(float)y });
-        //std::cout<<x<<y<<"\n";//debug
     }
 }
+
 void write_valid_spot(std::ofstream& fout) {
     Point best(-1, -1);
     OthelloBoard next;
     int value = INT_MIN, tmp;
-
+ 
     for (auto it : root.next_valid_spots) {
-        //std::cout<<":.:.:.:.:.:.:.:.:.:: "<<it.x<<","<<it.y<<"::.:.:.:.:.:.:.:.:.:.:.:.:.:.:.:\n";//debug
         next = root;
         next.put_disc(it);
         if (next.cur_player != player) {
+            //std::cout<<"works1\n";//debug
             tmp = minim(next, DEPTH - 1, INT_MIN, INT_MAX);
-        }else {
+        }
+        else {
+            //std::cout<<"works2\n";//debug
             tmp = maxim(next, DEPTH - 2, INT_MIN, INT_MAX);
         }
         if (value < tmp) {
@@ -423,7 +416,6 @@ void write_valid_spot(std::ofstream& fout) {
             value = tmp;
             fout << best.x << " " << best.y << std::endl;
             fout.flush();
-            //std::cout<<best.x<<best.y<<"\n";//debug
         }
     }
     // Remember to flush the output to ensure the last action is written to file.
@@ -441,4 +433,3 @@ int main(int, char** argv) {
     fout.close();
     return 0;
 }
-
